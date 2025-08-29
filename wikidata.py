@@ -1,7 +1,10 @@
-import requests
 from datetime import date
 
+import requests
+import pandas as pd
+
 from estimates import Estimate
+from census import Census
 
 
 class IbgeCodeToQid:
@@ -35,12 +38,14 @@ class IbgeCodeToQid:
         return self.mapping[str(code)]
 
 
+P_POPULATION = "P1082"
+P_POINT_IN_TIME = "P585"
+P_METHOD = "P459"
+S_REF_URL = "S854"
+S_RETRIEVED = "S813"
+
+
 class EstimateToQs:
-    P_POPULATION = "P1082"
-    P_POINT_IN_TIME = "P585"
-    P_METHOD = "P459"
-    S_REF_URL = "S854"
-    S_RETRIEVED = "S813"
     Q_ESTIMATION = "Q791801"
 
     def __init__(self):
@@ -52,19 +57,52 @@ class EstimateToQs:
         qs_list = []
         for code, population in estimate.populations().items():
             qid = self.mapper.qid(code)
-            statement = [qid, self.P_POPULATION, str(population)]
+            statement = [qid, P_POPULATION, str(population)]
             qualifiers = [
-                self.P_POINT_IN_TIME,
+                P_POINT_IN_TIME,
                 f"+{estimate.date}T00:00:00Z/11",
-                self.P_METHOD,
+                P_METHOD,
                 self.Q_ESTIMATION,
             ]
             reference = [
-                self.S_REF_URL,
+                S_REF_URL,
                 f'"{estimate.url}"',
-                self.S_RETRIEVED,
+                S_RETRIEVED,
                 retrieved,
             ]
             qs = "|".join(statement + qualifiers + reference)
             qs_list.append(qs)
+        return qs_list
+
+
+class CensusToQs:
+    Q_CENSUS = "Q39825"
+
+    def __init__(self):
+        self.mapper = IbgeCodeToQid()
+        self.mapper.load()
+
+    def to_qs_list(self, census: Census):
+        retrieved = f"+{date.today().isoformat()}T00:00:00Z/11"
+        qs_list = []
+        for code, populations_per_year in census.populations_per_year().items():
+            qid = self.mapper.qid(code)
+            for year, population in populations_per_year.items():
+                if pd.isna(population) or not population:
+                    continue
+                statement = [qid, P_POPULATION, str(population)]
+                qualifiers = [
+                    P_POINT_IN_TIME,
+                    f"+{year}-07-01T00:00:00Z/9",  # year precision
+                    P_METHOD,
+                    self.Q_CENSUS,
+                ]
+                reference = [
+                    S_REF_URL,
+                    f'"{census.url}"',
+                    S_RETRIEVED,
+                    retrieved,
+                ]
+                qs = "|".join(statement + qualifiers + reference)
+                qs_list.append(qs)
         return qs_list
