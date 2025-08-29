@@ -1,5 +1,6 @@
 # Script
 /data
+/result.qs
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
