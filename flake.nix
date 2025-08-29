@@ -14,6 +14,7 @@
         python312Packages.pandas
         python312Packages.odfpy
         python312Packages.xlrd
+        python312Packages.openpyxl
       ];
     };
   };

@@ -2,3 +2,4 @@ requests
 pandas
 odfpy
 xlrd
+openpyxl
