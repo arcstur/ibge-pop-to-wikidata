@@ -2,7 +2,7 @@ import logging
 import sys
 
 from estimates import ESTIMATE_YEARS
-from census import CENSUS_1970_2010
+from census import CENSUS_LIST
 from wikidata import EstimateToQs
 from wikidata import CensusToQs
 
@@ -21,8 +21,8 @@ def main():
         full_qs_list = sorted(full_qs_list)
     elif what == "census":
         cqs = CensusToQs()
-        c = CENSUS_1970_2010
-        full_qs_list.extend(cqs.to_qs_list(c))
+        for c in CENSUS_LIST:
+            full_qs_list.extend(cqs.to_qs_list(c))
     else:
         raise ValueError(f"argument must be 'estimates' or 'census', it's {what}")
 
