@@ -1,7 +1,3 @@
-# Script
-/data/estimate
-/result.qs
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

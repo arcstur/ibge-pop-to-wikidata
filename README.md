@@ -1,13 +1,3 @@
-# ibge-pop-to-wikidata
+# wikidata-scripts
 
-IBGE population data to Wikidata
-
-## Running
-
-```bash
-# to obtain QS for estimates
-python3 main.py estimates
-
-# to obtain QS for census
-python3 main.py census
-```
+Scripts to edit on Wikidata. Saving for future reference (maybe I need to reuse them).
