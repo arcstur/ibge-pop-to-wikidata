@@ -10,6 +10,7 @@ HEADERS = {
 with open("result.qs", "r") as f:
     ALL_INITIAL_COMMANDS = f.read().splitlines()
 
+
 class AllCitiesQid:
     ENDPOINT = "https://query.wikidata.org/sparql"
     QUERY = """
@@ -124,8 +125,34 @@ class JsonQid:
         logging.info(f"removing statement above with years: {_years}")
         # special case: census with 2000, 2010 + other values
         if "+2010" in years_left.keys() and "+2000" in years_left.keys():
-            logging.info("2000 census already handled in other statement, removing it from here")
+            logging.info(
+                "2000 census already handled in other statement, removing it from here"
+            )
             years_left.pop("+2000")
+        # special case: we don't have 2022 census data in result.qs
+        if "+2022" in years_left.keys() and len(years_left.keys()) == 2:
+            self.final_commands.pop(-1)
+            years_left.pop("+2022")
+            other_year = list(years_left.keys())[0]
+            cmd = None
+            for initial in self.initial_commands:
+                year = initial.split("|")[4][:5]
+                if year == other_year:
+                    cmd = initial
+                    break
+            if cmd is None:
+                raise ValueError(f"{other_year} not found")
+            parts = cmd.split("|")
+            self.append_command("|".join(["REMOVE_QUAL", *parts[0:5]]))
+            self.append_command("|".join(["REMOVE_QUAL", *parts[0:3], *parts[5:7]]))
+            self.append_command("|".join(["REMOVE_REF", *parts[0:3], *parts[7:9]]))
+            self.append_command(
+                "|".join(
+                    ["REMOVE_REF", *parts[0:3], parts[9], "+2025-08-29T00:00:00Z/11"]
+                )
+            )
+            self.append_command(initial)
+            years_left.pop(other_year)
         for initial in self.initial_commands:
             year = initial.split("|")[4][:5]
             if year in years_left.keys():
