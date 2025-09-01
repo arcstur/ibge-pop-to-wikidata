@@ -16,7 +16,7 @@ class IbgeCodeToQid:
     """
     HEADERS = {
         "Accept": "application/json",
-        "User-Agent": "ibge-pop-to-wikidata (https://github.com/arcstur/ibge-pop-to-wikidata)",
+        "User-Agent": "arcstur/wikidata-scripts (https://github.com/arcstur/wikidata-scripts)",
     }
 
     def __init__(self):
@@ -57,7 +57,7 @@ class EstimateToQs:
         qs_list = []
         for code, population in estimate.populations().items():
             qid = self.mapper.qid(code)
-            statement = [qid, P_POPULATION, str(population)]
+            statement = [f"+{qid}", P_POPULATION, str(population)]
             qualifiers = [
                 P_POINT_IN_TIME,
                 f"+{estimate.date}T00:00:00Z/11",
@@ -90,7 +90,7 @@ class CensusToQs:
             for year, population in populations_per_year.items():
                 if pd.isna(population) or not population:
                     continue
-                statement = [qid, P_POPULATION, str(population)]
+                statement = [f"+{qid}", P_POPULATION, str(population)]
                 qualifiers = [
                     P_POINT_IN_TIME,
                     f"+{year}-07-01T00:00:00Z/9",  # year precision
