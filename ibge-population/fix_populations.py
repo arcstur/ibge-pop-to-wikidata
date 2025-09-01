@@ -1,6 +1,7 @@
 import requests
 import logging
 from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
 
 HEADERS = {
     "Accept": "application/json",
@@ -158,8 +159,8 @@ class JsonQid:
             if year in years_left.keys():
                 self.append_command(initial)
                 years_left.pop(year)
-        if len(years_left) > 0:
-            raise ValueError(f"missing qs commands for years: {years_left}")
+        if len(years_left.keys()) > 0:
+            raise ValueError(f"[{self.qid}] missing qs commands for years: {years_left.keys()}")
 
     def idx_to_drop(self, st, idx_old, idx_new) -> Optional[int]:
         qualifiers = st["qualifiers"]
@@ -196,9 +197,11 @@ class JsonQid:
 
 def main():
     qids = AllCitiesQid().qids()
+    with ThreadPoolExecutor() as executor:
+        results = executor.map(lambda x: JsonQid(x), qids)
     with open("fix_populations.qs", "w") as f:
-        for qid in qids:
-            for cmd in JsonQid(qid).final_commands:
+        for jqid in results:
+            for cmd in jqid.final_commands:
                 f.write(cmd + "\n")
 
 
